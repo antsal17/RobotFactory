@@ -8,7 +8,6 @@ Library  RPA.PDF
 Library  RPA.Robocloud.Secrets
 Library  RPA.HTTP
 Library  OperatingSystem
-Library  RPA.Excel.Files
 Library  RPA.Archive
 Library  RPA.Dialogs
 Library  CSVLib
@@ -39,60 +38,62 @@ Creat Robots
     Input Text    id:address  ${row}[4]
     Click Button When Visible  id:preview
     Click Button When Visible  id:order
-    #Wait Until Element Is Visible    id:order-completion
     ${alert_modal}=  Is Element Enabled  //div[@class="alert alert-danger"]
     Run Keyword If  "${alert_modal}" == "True"  Verify if order is complete
     sleep  2
-    #${alert_modal}=  Is Element Enabled  //div[@class="alert alert-danger"]
-     
-    #IF    "${alert_modal}" == "True"
-      #Log    ${alert_modal}  
-      #Click Button When Visible  id:order  
-    #END
 
 *** Keywords ***
 Verify if order is complete
     Click Button When Visible  id:order
-    #Wait Until Element Is Visible    id:order-completion
     ${alert_modal}=  Is Element Enabled  //div[@class="alert alert-danger"]
     Run Keyword If  "${alert_modal}" == "True"  Verify if order is complete
 
 *** Keywords ***
 Save robot in PDF file
+      ##Solucion 1
       [Arguments]  ${row}
-      #Wait Until Element Is Visible    id:order-completion
       ${order_receipt}=  Get Element Attribute    id:receipt    outerHTML
       Wait Until Keyword Succeeds  3x  0.5s   Screenshot    id:robot-preview-image    ${CURDIR}${/}Orders${/}Images${/}robot_order${row}[0].png
       ${order_image}=  Catenate   SEPARATOR=   <div><img src="  ${CURDIR}${/}Orders${/}Images${/}robot_order${row}[0].png  " alt="imagem"/></div>
       ${order_final}=  Catenate  ${order_receipt}  ${order_image}
-      HTML to PDF    ${order_final}  ${CURDIR}${/}Orders${/}OrderPDF${row}[0].pdf      
+      HTML to PDF    ${order_final}  ${CURDIR}${/}Orders${/}OrderPDF${row}[0].pdf
 
 *** Keywords ***
-Loop workbook
+Save robot in PDF file_1
+      ##Solucion 2
+      #Not working, Image in other PDF page
+      [Arguments]  ${row}
+      ${order_receipt}=  Get Element Attribute    id:receipt    outerHTML
+      Wait Until Keyword Succeeds  3x  0.5s   Screenshot    id:robot-preview-image    ${CURDIR}${/}Orders${/}Images${/}robot_order${row}[0].png
+      HTML to PDF    ${order_receipt}  ${CURDIR}${/}Orders${/}OrderPDF${row}[0].pdf
+      ${files}=    Create List
+      ...    ${CURDIR}${/}Orders${/}Images${/}robot_order${row}[0].png:align=center   
+      Add Files To PDF  ${files}  ${CURDIR}${/}Orders${/}OrderPDF${row}[0].pdf   True
+      
+
+*** Keywords ***
+Convert CSV To List
     ${list}=		Read Csv As List		${CURDIR}${/}Data${/}orders.csv
     [Return]  ${list}
-
-
 
 *** Keywords ***
 Create zip archive
     Archive Folder With ZIP   ${CURDIR}${/}Orders  Orders.zip   recursive=True  include=*.pdf  exclude=*.png
 
-
-
-
 *** Tasks ***
 Order robots from RobotSpareBin Industries Inc
+    ##via input text
     ${site}=  Collect Site to robots
+    ##via vault.json
     ${site_credentias}=    Get Secret    credentials
-    log  ${site}
-    Download the CSV file  ${site_credentias}[url]
+    ##via input text replace ${site_credentias}[url] for ${site}
+    Download the CSV file  ${site_credentias}[url]   
     Open the Browser and accept conditions
-    ##Download the CSV file
-    ${rows}=  Loop workbook
+    ${rows}=  Convert CSV To List
     FOR    ${row}   IN    @{rows}
     IF    "${row}[1]" != "Head"
     Creat Robots  ${row}
+    ##For solucion 2 replace "Save robot in PDF file" for "Save robot in PDF file_1"
     Save robot in PDF file  ${row}
     Click Button When Visible  id:order-another
     END       
