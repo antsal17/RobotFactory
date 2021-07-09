@@ -16,6 +16,7 @@ Library  RPA.Browser.Selenium
 *** Keywords ***
 Open the Browser and accept conditions
     Open Available Browser     https://robotsparebinindustries.com/#/robot-order
+    Click Button When Visible  //button[@class="btn btn-dark"]
 
 *** Keywords ***
 Collect Site to robots
@@ -31,7 +32,6 @@ Download the CSV file
 *** Keywords ***
 Creat Robots
     [Arguments]  ${row}
-    Click Button When Visible  //button[@class="btn btn-dark"]
     Select From List By Value  id:head  ${row}[1]
     Select Radio Button  body  ${row}[2]
     Input Text    //input[@class="form-control"]    ${row}[3]
@@ -69,7 +69,7 @@ Save robot in PDF file_1
       ${files}=    Create List
       ...    ${CURDIR}${/}Orders${/}Images${/}robot_order${row}[0].png:align=center   
       Add Files To PDF  ${files}  ${CURDIR}${/}Orders${/}OrderPDF${row}[0].pdf   True
-      
+
 
 *** Keywords ***
 Convert CSV To List
