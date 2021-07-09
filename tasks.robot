@@ -18,10 +18,6 @@ Library  RPA.Browser.Selenium
 Open the Browser and accept conditions
     Open Available Browser     https://robotsparebinindustries.com/#/robot-order
 
-
-    # Note: in real robots, you should not print secrets to the log. this is just for demonstration purposes :)
-    Log    ${secret}[url]
-
 *** Keywords ***
 Collect Site to robots
     Add text input    search    label=Search query
